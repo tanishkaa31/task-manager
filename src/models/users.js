@@ -44,9 +44,12 @@ const userSchema = new mongoose.Schema({
     tokens: [{                  //array of objects: becomes a sub-document, with an automatic objectID generated
         token: {               //each object has property: token
             required: true,
-            type: String
+            type: String 
         }
-    }]
+    }],
+    avatar: {
+        type: Buffer
+    }
 }, {
     timestamps: true
 })
@@ -85,6 +88,7 @@ userSchema.methods.toJSON = function(){
     const userObject = user.toObject()
     delete userObject['password']
     delete userObject['tokens']
+    delete userObject['avatar']
     return userObject               //JSON.stringify returns whatever toJSON returns
 }
 

@@ -1,6 +1,9 @@
 const express = require('express')
 const User = require('../models/users.js')
 const auth = require('../middleware/auth.js')
+const multer = require('multer')
+const sharp = require('sharp')
+const { append } = require('express/lib/response')
 
 const router = new express.Router()
 
@@ -107,6 +110,52 @@ router.delete('/users/me', auth, async (req, res) => {
     }
     catch(e){
         res.status(500).send(e)
+    }
+})
+
+//file upload
+const upload = multer({
+   // dest: 'avatars',
+    limits: {
+        fileSize: 1000000 //in bytes; so this is 1MB
+    },
+    fileFilter(req, file, cb){
+        if(file.originalname.match(/\.(png|jpg|jpeg)$/))
+            return cb(undefined, true)
+        return cb(new Error('File type not supported. (Only png, jpg, jpeg images allowed)'))
+    }
+})
+
+router.post('/users/me/avatar',auth, upload.single('avatar'), async (req, res) => {
+    const buffer = await sharp(req.file.buffer).resize({height:250, width:250}).png().toBuffer()
+    req.user.avatar = buffer
+    //  req.user.avatar = req.file.buffer           //if dest option is not specified in multer, it sends the uploaded data to req.file in this route handler function 
+    await req.user.save()
+    res.send('Avatar successfully created.')
+}, (error, req, res, next) => {
+    res.status(400).send(error.message)             
+})
+
+router.delete('/users/me/avatar', auth, async (req, res) => {
+    if(!req.user.avatar)
+        return res.status(404).send('Your avatar does not exist.')
+    req.user.avatar = undefined
+    await req.user.save()
+    res.send('Your avatar has been deleted.')
+})
+
+router.get('/users/:id/avatar', async (req, res) => {
+    try{
+        const user = await User.findById(req.params.id)
+        if(!user || !user.avatar)
+        {
+            throw new Error('Not found.')
+        }
+
+        res.set('Content-Type', 'image/png')
+        res.send(user.avatar)
+    }catch(e){
+        res.status(400).send(e)
     }
 })
 
