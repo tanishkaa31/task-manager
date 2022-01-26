@@ -47,6 +47,8 @@ const userSchema = new mongoose.Schema({
             type: String
         }
     }]
+}, {
+    timestamps: true
 })
 
 //methods works on instances of User, i.e., user 

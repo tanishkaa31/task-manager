@@ -23,12 +23,30 @@ router.post('/tasks', auth, async (req, res) => {
     }   
 })
 
+//pagination -> display results in the form of pages (either explicitly click on pages, or view more while scrolling, or infinite scrolling, etc.)
 router.get('/tasks', auth, async (req, res) => {
+    const match = {}
+    const sort = {}
+    if(req.query.completed){                                            //convert string to boolean, since req.query.completed = string
+        match.completed = req.query.completed === 'true'}
+    if(req.query.description){
+        match.description = req.query.description}          //won't work directly in match within populate, because the condition to check whether completed and description are present is crucial. If they aren't present, then tasks would be searched for description: undefined, and completed: false, giving wrong results
+    if(req.query.sortBy){
+        const parts =  req.query.sortBy.split(':')                  //-1 for desc, 1 for asc; GET /tasks?sortBy=createdAt:asc
+        sort[parts[0]] = parts[1] === 'asc'?1:-1
+    }
     try{
-        const tasks = await Task.find({owner: req.user._id})
-        //await req.user.populate('tasks')
-        //res.send(req.user.tasks)
-        res.send(tasks)
+        //const tasks = await Task.find({owner: req.user._id})              //returns all the tasks created by the user
+        await req.user.populate({
+            path: 'tasks',
+            match,          //filtering
+            options: {
+                limit: parseInt(req.query.limit),      //converts string to a number; everything in the query = key-value pair with value = string (even the numbers)
+                skip: parseInt(req.query.skip),
+                sort
+            }
+        })
+        res.send(req.user.tasks)
     }catch(e){
         res.status(500).send(e)
     } 

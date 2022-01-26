@@ -15,6 +15,8 @@ const taskSchema = new mongoose.Schema({
         required: true,
         ref: 'User'             // as in line 95, users.js
     }
+}, {
+    timestamps: true
 })
 
 //don't send owner back
