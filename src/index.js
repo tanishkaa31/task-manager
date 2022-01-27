@@ -5,7 +5,7 @@ const taskRouter = require('./routers/task.js')
 const multer = require('multer')
 
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT 
 
 //using express without middleware: new request -> run route handler
 //using express with middleware: new request -> do something -> run route handler

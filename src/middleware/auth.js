@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const auth = async (req,res, next) => {
    try{
     const token = req.header('Authorization').replace('Bearer ', '')    
-    const isValid = jwt.verify(token, 'this is the user auth secret')       //returns decoded payload if token is valid, else error
+    const isValid = jwt.verify(token, process.env.JWT_SECRET)       //returns decoded payload if token is valid, else error
     const user = await User.findOne({_id: isValid._id, 'tokens.token': token})      //have to check whether token still present within the user's data since when the user logs out, token is deleted
 
     if(!user)
